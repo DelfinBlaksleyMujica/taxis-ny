@@ -1,7 +1,12 @@
+# Usamos shell para obtener la lista de archivos una sola vez
+PYTHON_FILES := $(shell find . -iname "*.py" -not -path "./tests/*")
+
 default: pylint pytest
 
 pylint:
-    find . -iname "*.py" -not -path "./tests/*" | xargs -n1 -I {}  pylint --output-format=colorized {}; true
+	# El prefijo '-' permite que continue si hay errores de estilo
+	-pylint --output-format=colorized $(PYTHON_FILES)
 
 pytest:
-    PYTHONDONTWRITEBYTECODE=1 pytest -v --color=yes
+	# Pytest ya detecta colores si la terminal lo soporta
+	PYTHONDONTWRITEBYTECODE=1 pytest -v
