@@ -30,3 +30,6 @@ jobs:
     # Fourth step: run tests with Pytest
     - name: Run tests
       run: make
+
+    - name: Format with Black
+      run: black .

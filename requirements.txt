@@ -5,3 +5,5 @@ seaborn
 
 # Testing packages
 pytest
+
+black
