@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 
 BOROUGH_FILES = {
-    "Manhattan": DATA_DIR / "manhattan.csv",
+    "Queens": DATA_DIR / "queens.csv",
     "State Island": DATA_DIR / "state_island.csv",
     "Bronx": DATA_DIR / "bronx.csv",
 }
@@ -116,7 +116,7 @@ def get_boroughs():
 
 @app.get("/data")
 def get_data(
-    borough: str = Query(..., description="Manhattan, State Island o Bronx"),
+    borough: str = Query(..., description="Queens, State Island o Bronx"),
     day_name: str = Query(..., description="Day of week"),
     hour: str = Query(..., description="Hour from 0 to 23")
 ):

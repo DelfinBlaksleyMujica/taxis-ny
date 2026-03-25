@@ -104,7 +104,7 @@ day_options = [
 hour_options = [str(i) for i in range(24)]
 
 borough_options = [
-    "Manhattan",
+    "Queens",
     "Bronx",
     "State Island"
 ]
