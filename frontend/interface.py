@@ -2,6 +2,8 @@ import requests
 import pandas as pd
 import streamlit as st
 import altair as alt
+import pydeck as pdk
+
 
 URL_API = "http://127.0.0.1:8000"
 
@@ -133,6 +135,50 @@ def get_tier_label(ad_value):
 def format_hour(hour_value):
     return f"{int(hour_value):02d}:00"
 
+# ---- New Line ----- 
+def render_map(selected_borough):
+
+    url = "https://raw.githubusercontent.com/dwillis/nyc-maps/master/boroughs.geojson"
+    geojson = requests.get(url).json()
+
+    def get_color(feature):
+        if feature["properties"]["BoroName"] == selected_borough:
+            return [0, 255, 140, 180]  # verde brillante (match con tu UI)
+        else:
+            return [120, 120, 120, 50]  # gris suave
+
+    for feature in geojson["features"]:
+        feature["properties"]["color"] = get_color(feature)
+
+    layer = pdk.Layer(
+        "GeoJsonLayer",
+        geojson,
+        get_fill_color="properties.color",
+        get_line_color=[255, 255, 255],
+        pickable=True,
+    )
+
+    view_state = pdk.ViewState(
+        latitude=40.7128,
+        longitude=-74.0060,
+        zoom=10,
+    )
+
+    tooltip = {
+        "html": "<b>{BoroName}</b>",
+        "style": {"color": "white"}
+    }
+
+    st.pydeck_chart(
+        pdk.Deck(
+            layers=[layer],
+            initial_view_state=view_state,
+            tooltip=tooltip
+        ),
+        use_container_width=True
+    )
+
+# ---- New Line ----- 
 
 @st.cache_data(show_spinner=False)
 def fetch_prediction(borough, day_name, hour):
@@ -207,6 +253,17 @@ with col3:
 search_clicked = st.button("Buscar predicción", use_container_width=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
+
+# ---- New Line ----- 
+borough_map = {
+    "Queens": "Queens",
+    "Bronx": "Bronx",
+    "State Island": "Staten Island"
+}
+
+render_map(borough_map[selected_borough])
+
+# ---- New Line ----- 
 
 if search_clicked:
     with st.spinner("Consultando predicción..."):
