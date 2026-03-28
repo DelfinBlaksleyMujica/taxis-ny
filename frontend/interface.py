@@ -2,6 +2,8 @@ import requests
 import pandas as pd
 import streamlit as st
 import altair as alt
+import folium
+from streamlit_folium import st_folium
 
 URL_API = "http://127.0.0.1:8000"
 
@@ -106,7 +108,9 @@ hour_options = [str(i) for i in range(24)]
 borough_options = [
     "Queens",
     "Bronx",
-    "State Island"
+    "State Island",
+    "Manhattan",
+    "Brooklyn"
 ]
 
 
@@ -204,11 +208,17 @@ with col2:
 with col3:
     selected_hour = st.selectbox("Seleccionar hora", hour_options, index=12)
 
+if "show_results" not in st.session_state:
+    st.session_state.show_results = False
+
 search_clicked = st.button("Buscar predicción", use_container_width=True)
+
+if search_clicked:
+    st.session_state.show_results = True
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-if search_clicked:
+if st.session_state.show_results:
     with st.spinner("Consultando predicción..."):
         try:
             prediction_data = fetch_prediction(selected_borough, selected_day, selected_hour)
@@ -248,8 +258,93 @@ if search_clicked:
 
                 st.success(
                     f"El nivel de tráfico para {item['borough']} el día "
-                    f"{item['day_name']} a las {format_hour(item['hour'])} es de {int(traffic_value)} autos"
+                    f"{item['day_name']} a las {format_hour(item['hour'])} es de {int(traffic_value)}"
                 )
+
+                st.markdown('<div class="section-title">Mapa de Densidad de Tráfico por Distrito</div>', unsafe_allow_html=True)
+
+                BOROUGH_COORDS = {
+                    "queens": {"lat": 40.7282, "lon": -73.7949},
+                    "bronx": {"lat": 40.8448, "lon": -73.8648},
+                    "state_island": {"lat": 40.5795, "lon": -74.1502},
+                    "manhattan": {"lat": 40.7831, "lon": -73.9712},
+                    "brooklyn": {"lat": 40.6782, "lon": -73.9442},
+                }
+
+                map_df = all_df[
+                    (all_df["day_name"] == selected_day) &
+                    (all_df["hour"] == int(selected_hour))
+                ].copy()
+
+                map_df["borough_key"] = map_df["borough"].str.lower().str.strip()
+                map_df["lat"] = map_df["borough_key"].map(lambda x: BOROUGH_COORDS.get(x, {}).get("lat"))
+                map_df["lon"] = map_df["borough_key"].map(lambda x: BOROUGH_COORDS.get(x, {}).get("lon"))
+                map_df = map_df.dropna(subset=["lat", "lon"])
+
+                #Este es el mapa de New York
+                GEOJSON_URL = "https://raw.githubusercontent.com/dwillis/nyc-maps/master/boroughs.geojson"
+                geo_data = requests.get(GEOJSON_URL).json()
+
+                BOROUGH_NAME_MAP = {
+                    "Staten Island": "state_island",
+                    "Manhattan": "manhattan",
+                    "Brooklyn": "brooklyn",
+                    "Queens": "queens",
+                    "The Bronx": "bronx"
+                }
+
+
+                yhat_dict = dict(zip(map_df["borough_key"], map_df["yhat"]))
+
+                for feature in geo_data["features"]:
+                    boro_name = feature["properties"]["BoroName"]
+                    key = BOROUGH_NAME_MAP.get(boro_name, boro_name.lower())
+                    feature["properties"]["borough_key"] = key
+                    feature["properties"]["trafico"] = int(yhat_dict.get(key, 0))
+
+                m = folium.Map(location=[40.7128, -74.0060], zoom_start=11)
+
+                choropleth = folium.Choropleth(
+                    geo_data=geo_data,
+                    data=map_df,
+                    columns=["borough_key", "yhat"],
+                    key_on="feature.properties.borough_key",
+                    fill_color="YlOrRd",
+                    fill_opacity=0.7,
+                    line_opacity=0.3,
+                    legend_name="N° de autos estimados",
+                    nan_fill_color="#ffffcc",
+                    threshold_scale = [0, 1, 100, 500, 1000, 2000, 3000, 4000]
+                ).add_to(m)
+
+                # Para hacer interactivo el mapa
+                choropleth.geojson.add_child(
+                    folium.features.GeoJsonTooltip(
+                        fields=["BoroName", "trafico"],
+                        aliases=["Distrito:", "Autos estimados:"],
+                        style="background-color: white; color: #333; font-size: 13px; padding: 8px;"
+                    )
+                )
+
+                BOROUGH_LABELS = {
+                    "queens": {"lat": 40.7282, "lon": -73.8449, "label": "Queens"},
+                    "bronx": {"lat": 40.8448, "lon": -73.8648, "label": "Bronx"},
+                    "state_island": {"lat": 40.5795, "lon": -74.1502, "label": "Staten Island"},
+                    "manhattan": {"lat": 40.7580, "lon": -73.9855, "label": "Manhattan"},
+                    "brooklyn": {"lat": 40.6502, "lon": -73.9442, "label": "Brooklyn"},
+                }
+
+                for key, info in BOROUGH_LABELS.items():
+                    folium.Marker(
+                        location=[info["lat"], info["lon"]],
+                        icon=folium.DivIcon(
+                            html=f'<div style="font-size:13px; font-weight:700; color:#333; text-shadow: 1px 1px 2px white;">{info["label"]}</div>',
+                            icon_size=(120, 30),
+                            icon_anchor=(60, 15)
+                        )
+                    ).add_to(m)
+
+                st_folium(m, use_container_width=True, height=400, returned_objects=[])
 
                 # st.markdown('</div>', unsafe_allow_html=True)
 
@@ -385,7 +480,7 @@ if search_clicked:
                     "borough": "Distrito",
                     "day_name": "Día",
                     "hour": "Hora",
-                    "yhat": "Predicción de autos"
+                    "yhat": "Predicción de autos",
                 })
 
                 best_zones_df["Hora"] = best_zones_df["Hora"].apply(format_hour)
@@ -409,5 +504,5 @@ if search_clicked:
                 st.error(f"Error API: {e}")
         except Exception as e:
             st.error(f"Error inesperado: {e}")
-else:
+if not st.session_state.show_results:
     st.info("Seleccioná un distrito, día y hora para ver la predicción y recomendaciones.")
