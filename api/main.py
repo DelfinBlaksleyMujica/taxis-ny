@@ -22,6 +22,8 @@ BOROUGH_FILES = {
     "Queens": DATA_DIR / "queens.csv",
     "State Island": DATA_DIR / "state_island.csv",
     "Bronx": DATA_DIR / "bronx.csv",
+    "Brooklyn": DATA_DIR / "brooklyn.csv",
+    "Manhattan": DATA_DIR / "manhattan.csv"
 }
 
 VALID_DAYS = [
@@ -116,7 +118,7 @@ def get_boroughs():
 
 @app.get("/data")
 def get_data(
-    borough: str = Query(..., description="Queens, State Island o Bronx"),
+    borough: str = Query(..., description="Queens, State Island, Manhattan, Brooklyn o Bronx"),
     day_name: str = Query(..., description="Day of week"),
     hour: str = Query(..., description="Hour from 0 to 23")
 ):
