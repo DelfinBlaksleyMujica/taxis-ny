@@ -23,4 +23,9 @@ COMPLETAR
 * **Frontend:** Streamlit & Folium for map visualization.
 * **Environment & Tools:** Git, Make, Virtual Environments
 
+#### Contributors
 
+* ** Ademir Aquije Renzo
+* ** Blaksey Mujica Delfin
+* ** Diorio Enzo Ayrton
+* ** Ventura Max
