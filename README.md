@@ -25,7 +25,7 @@ COMPLETAR
 
 #### Contributors
 
-* ** Ademir Aquije Renzo
-* ** Blaksey Mujica Delfin
-* ** Diorio Enzo Ayrton
-* ** Ventura Max
+* **Ademir Aquije Renzo**  AGREGAR LINKEDIN
+* **Blaksey Mujica Delfin**
+* **Diorio Enzo Ayrton**
+* **Ventura Max**
