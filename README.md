@@ -25,7 +25,11 @@ COMPLETAR
 
 #### Contributors
 
-* **Ademir Aquije Renzo**  AGREGAR LINKEDIN
+* **Ademir Aquije Renzo**
+* www.linkedin.com/in/renzo-ademir-aquije-castro
 * **Blaksey Mujica Delfin**
+* https://www.linkedin.com/in/delfin-blaksley-mujica-73415b276/
 * **Diorio Enzo Ayrton**
+* https://www.linkedin.com/in/enzoayrtondiorio/
 * **Ventura Max**
+* www.linkedin.com/in/maximilianoventuraherrera
