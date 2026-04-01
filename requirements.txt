@@ -7,6 +7,11 @@ seaborn
 pytest
 
 black
-#Backend
-uvicorn
 fastapi
+uvicorn
+pandas
+streamlit
+requests
+plotly
+folium
+streamlit-folium
